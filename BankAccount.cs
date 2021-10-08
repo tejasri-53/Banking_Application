@@ -1,59 +1,95 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Bank_Application
+namespace BankApplication
 {
-    public class BankAccount
+    class BankAccount
     {
-        
-        public void Deposit(int  amount, int AccountId, int[] Account_Ids,int[] AccountBalances) {
 
-            int c = 0;
-            for (int i = 0; i < Account_Ids.Length ; i++) {
-                if (Account_Ids[i] == AccountId) {
-                    AccountBalances[i] += amount;
-                    Console.WriteLine("Deposited " + amount + " to the bank account " +AccountId);
-                    c= 1;
-                    break;
-                }
-            }
-            this.AccountBalance(AccountId,Account_Ids,AccountBalances);
-            
+        public static void CreateAccount(Dictionary<int, Account> AccountsList)
+        {
+            string name = DisplayMessages.EnterUserName();
+            string pin = DisplayMessages.EnterPIN();
+            Account account = new Account(name, pin);
+            AccountsList.Add(account.GetAccountID(), account);
         }
 
-        public void Withdraw(int  Money, int AccountId,int[] Account_Ids, int[] AccountBalances) {
-     
-            for (int i = 0; i <Account_Ids.Length; i++)
+        public static void BalanceEnquiry(Account account)
+        {
+            Console.WriteLine("Your Available Balance : " + account.GetAmount());
+        }
+        public static bool VerifyBalanceAmount(Account account, double amount)
+        {
+            if (account.GetAmount() >= amount)
             {
-               
-                if (Account_Ids[i]== AccountId)
+                return true;
+            }
+            return false;
+        }
+
+
+        public static void Deposit(Dictionary<int, Account> AccountsList)
+        {
+            int accountID = DisplayMessages.EnterAccountID();
+            if (AccountsList.ContainsKey(accountID))
+            {
+                string pin = DisplayMessages.EnterPIN();
+                if (Bank.Validate(accountID, pin))
                 {
-                    if (Money> AccountBalances[i])
+                    double amount = DisplayMessages.EnterAmount();
+                    Account account = AccountsList[accountID];
+                    account.SetAmount(account.GetAmount() + amount);
+                    DisplayMessages.DepositMessage();
+                    BalanceEnquiry(account);
+
+                }
+                else
+                {
+                    DisplayMessages.InvalidPIN();
+                }
+            }
+            else
+            {
+                DisplayMessages.AccountDoesntExist();
+            }
+
+        }
+
+
+
+        public static void Withdraw(Dictionary<int, Account> AccountsList)
+        {
+            int accountID = DisplayMessages.EnterAccountID();
+            if (AccountsList.ContainsKey(accountID))
+            {
+                string pin = DisplayMessages.EnterPIN();
+                if (Bank.Validate(accountID, pin))
+                {
+                    double amount = DisplayMessages.EnterWithdrawAmount();
+                    Account account = AccountsList[accountID];
+                    if (VerifyBalanceAmount(account, amount))
                     {
-                        Console.WriteLine("Withdrawl Amount Exceeds Balance");
-                        break;
+                        account.SetAmount(account.GetAmount() - amount);
+                        DisplayMessages.WithDrawMessage();
+                        BalanceEnquiry(account);
+
                     }
                     else
                     {
-                        AccountBalances[i]=AccountBalances[i]- Money;
-                        Console.WriteLine("Withdrawn " + Money + " from the bank account " + AccountId);
-                        break;
+                        DisplayMessages.InsufficientAmount();
                     }
-                }
-            }
-        }
 
-        public void AccountBalance(int AccountId,int[] Account_Ids, int[] AccountBalances) {
-            for (int i = 0; i < Account_Ids.Length; i++)
-            {
-                if (Account_Ids[i] == AccountId)
+                }
+                else
                 {
-                    Console.WriteLine("Account "+AccountId  + " has amount  " + AccountBalances[i]);
-                    break;
+                    DisplayMessages.InvalidPIN();
                 }
             }
-            
+            else
+            {
+                DisplayMessages.AccountDoesntExist();
+            }
+
         }
 
 
