@@ -1,52 +1,90 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 
-namespace Bank_Application
+using BankApplication.Services;
+
+namespace BankApplication
 {
     class Bank
     {
-        static void Main(string[] args)
+        
+        public static Dictionary<int, Account> AccountsList;
+
+        static Bank()
         {
-            int[] ids = new int[100000000];
-            int[] amounts = new int[10000000];
-            int i = 0;
-            
+            AccountsList = new Dictionary<int, Account>();
+
+        }
+        public static void Options()
+        {
+            Console.WriteLine("Customer Options: ");
+            Console.WriteLine("1. Create a Account");
+            Console.WriteLine("2. Deposit Amount");
+            Console.WriteLine("3. Withdraw Amount");
+            Console.WriteLine("4. Transfer Amount");
+            Console.WriteLine("5. Balance Enquiry");
+            Console.WriteLine("6. Exit");
+            Console.WriteLine("Select Your Choice: ");
+        }
+        public static bool Validate(int accountID, string pin)
+        {
+            if (pin != AccountsList[accountID].pin)
+            {
+                return false;
+            }
+            return true;
+        }
+
+
+        public static void Main()
+        {
             while (true)
             {
-                Console.WriteLine("Enter your Choice : \n 1. Create New Account \n 2. Perform Transactions on Existing Account \n 3. Bank Accounts Database \n 4. Transfer ");
-                int choice= Convert.ToInt32(Console.ReadLine());
-                if (choice == 2)
+                Bank.Options();
+                Operations operations = (Operations) Enum.Parse(typeof(Operations),Console.ReadLine());
+               
+                switch (operations) 
                 {
-                    Transactions t = new Transactions();
-                    t.Solve(ids, amounts, i);
-                    
+                    case Operations.CreateAccount:BankAccount.CreateAccount(AccountsList);
+                                            break;
+                    case Operations.Deposit:BankAccount.Deposit(AccountsList);
+                                    break;
+                    case Operations.Withdraw: BankAccount.Withdraw(AccountsList);
+                                       break;
+                    case Operations.Transfer:Transfer.TransferAmount(AccountsList);
+                                     break;
+                    case Operations.BalanceEnquiry:  Account Id = AccountsList[DisplayMessages.EnterAccountID()];
+                                             BankAccount.BalanceEnquiry(Id) ;
+                                            break;
+                    case Operations.Exit: DisplayMessages.Exit();
+                                         break;
                 }
-                else if (choice == 1)
-                {
-                    CreateAccount.createAccount(ids, amounts, i);
-                    i += 1;
-                }
-                else if (choice == 3)
-                {
-                    Bank_Database.bankData(amounts, ids, i);
-
-                }
-                else if(choice==4){
-                    Transfer.transfer(amounts,ids);
-                }
-                else
-                {
-                    Console.WriteLine("Please Enter Valid Option ");
-                }
-                Console.WriteLine("Enter 1 if you wish to Continue else Enter 2 ");
-                int ch= Convert.ToInt32(Console.ReadLine());
-                
-                if (ch== 2)
+                if (operations == Operations.Exit) 
                 {
                     break;
                 }
+
             }
         }
-    }
 
-    
+
+
+
+        public enum Operations
+        {
+            CreateAccount = 1,
+            Deposit,
+            Withdraw,
+            Transfer,
+            BalanceEnquiry,
+            Exit
+
+        }
+
+
+
+
+
+
+    }
 }
