@@ -1,31 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Bank_Application
+using System.Collections.Generic;
+using BankApplication.Services;
+namespace BankApplication
 {
     class Transfer
     {
-        public static void transfer(int[] AccountBalances,int[] Account_ids) 
+        
+        public static void TransferAmount(Dictionary<int, Account> AccountsList)
         {
-            Console.WriteLine("Enter  Account id from which transfer has to be processed :");
-            int fromId= Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("Enter Account id to which the transfer amount has to be credited:");
-            int to_Id = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("Enter Amount to be transfered :");
-            int Amount = Convert.ToInt32(Console.ReadLine());
 
-            for (int i = 0; i < Account_ids.Length; i++)
+            int accountID = DisplayMessages.EnterAccountID();
+
+            if (AccountsList.ContainsKey(accountID))
             {
-                if (Account_ids[i] == fromId)
+                string pin = DisplayMessages.EnterPIN();
+                if (!Bank.Validate(accountID, pin))
                 {
-                    AccountBalances[i] -= Amount;
+                    DisplayMessages.InvalidPIN();
                 }
-                else if(Account_ids[i] == to_Id){
-                    AccountBalances[i] += Amount;
+                else
+                {
+                    int toID = DisplayMessages.EnterAccountID();
+                    if (AccountsList.ContainsKey(toID))
+                    {
+                        double amount = DisplayMessages.EnterTransferAmount();
+                        Account account = AccountsList[accountID];
+                        
+                        if (BankAccount.VerifyBalanceAmount(account, amount))
+                        {
+                            account.SetAmount(account.GetAmount() - amount);
+                            AccountsList[toID].SetAmount(AccountsList[toID].GetAmount() + amount);
+                            DisplayMessages.TransferMessage();
+                            BankAccount.BalanceEnquiry(account);
+
+                        }
+                        else
+                        {
+                            DisplayMessages.InsufficientAmount();
+                        }
+                    }
+                    else
+                    {
+                        DisplayMessages.AccountDoesntExist();
+                    }
                 }
             }
-            Console.WriteLine(Amount + " has been transfered from the bank account " + fromId + " to the bank Account "+ to_Id);
+            else
+            {
+                DisplayMessages.AccountDoesntExist();
+            }
         }
+
     }
+
+
 }
