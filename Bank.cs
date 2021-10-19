@@ -1,22 +1,24 @@
 using System;
 using System.Collections.Generic;
-
 using BankApplication.Services;
+using Transaction.Models;
 
 namespace BankApplication
 {
     class Bank
     {
-        
-        public static Dictionary<int, Account> AccountsList;
 
-        static Bank()
+        public static List<transactionModels> transactionList;
+        Dictionary<string, AccountModel> AccountsList;
+
+         Bank()
         {
-            AccountsList = new Dictionary<int, Account>();
+              Dictionary<int, AccountModel>  AccountsList = new Dictionary<int, AccountModel>();
 
         }
         public static void Options()
         {
+            
             Console.WriteLine("Customer Options: ");
             Console.WriteLine("1. Create a Account");
             Console.WriteLine("2. Deposit Amount");
@@ -26,9 +28,10 @@ namespace BankApplication
             Console.WriteLine("6. Exit");
             Console.WriteLine("Select Your Choice: ");
         }
-        public static bool Validate(int accountID, string pin)
+        public static bool Validate(string accountID, string pin)
         {
-            if (pin != AccountsList[accountID].pin)
+            Bank b = new Bank();
+            if (pin != b.AccountsList[accountID].pin)
             {
                 return false;
             }
@@ -42,20 +45,29 @@ namespace BankApplication
             {
                 Bank.Options();
                 Operations operations = (Operations) Enum.Parse(typeof(Operations),Console.ReadLine());
-               
+                bankAccount bankAcc = new bankAccount();
+                Bank b = new Bank();
+                Transactions t = new Transactions();
                 switch (operations) 
                 {
-                    case Operations.CreateAccount:BankAccount.CreateAccount(AccountsList);
+                    
+                  
+
+                    case Operations.CreateAccount:
+                                        t.createAccount(b.AccountsList);
+                                        break;
+                    case Operations.Deposit:
+                                            t.deposit(b.AccountsList);
                                             break;
-                    case Operations.Deposit:BankAccount.Deposit(AccountsList);
-                                    break;
-                    case Operations.Withdraw: BankAccount.Withdraw(AccountsList);
-                                       break;
-                    case Operations.Transfer:Transfer.TransferAmount(AccountsList);
-                                     break;
-                    case Operations.BalanceEnquiry:  Account Id = AccountsList[DisplayMessages.EnterAccountID()];
-                                             BankAccount.BalanceEnquiry(Id) ;
+                    case Operations.Withdraw:
+                                            t.withdraw(b.AccountsList);
+                                             break;
+                    case Operations.Transfer: Transfer.TransferAmount(b.AccountsList,transactionList);
                                             break;
+                    case Operations.BalanceEnquiry:  
+                                            AccountModel Id = b.AccountsList[DisplayMessages.EnterAccountID()];
+                                                bankAccount.BalanceEnquiry(Id) ;
+                                                     break;
                     case Operations.Exit: DisplayMessages.Exit();
                                          break;
                 }
@@ -72,7 +84,9 @@ namespace BankApplication
 
         public enum Operations
         {
-            CreateAccount = 1,
+
+            
+            CreateAccount=1 ,
             Deposit,
             Withdraw,
             Transfer,
