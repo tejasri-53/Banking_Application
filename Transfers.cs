@@ -1,15 +1,20 @@
 
+using System;
 using System.Collections.Generic;
+using BankApplication.Models;
 using BankApplication.Services;
+using Transaction.Models;
+using Transaction.Services;
+
 namespace BankApplication
 {
     class Transfer
     {
         
-        public static void TransferAmount(Dictionary<int, Account> AccountsList)
+        public static void TransferAmount(Dictionary<string, AccountModel> AccountsList, List<transactionModels> transactionList)
         {
 
-            int accountID = DisplayMessages.EnterAccountID();
+            string accountID = DisplayMessages.EnterAccountID();
 
             if (AccountsList.ContainsKey(accountID))
             {
@@ -20,19 +25,21 @@ namespace BankApplication
                 }
                 else
                 {
-                    int toID = DisplayMessages.EnterAccountID();
+                    string toID = DisplayMessages.EnterAccountID();
                     if (AccountsList.ContainsKey(toID))
                     {
                         double amount = DisplayMessages.EnterTransferAmount();
-                        Account account = AccountsList[accountID];
+                        AccountModel account = AccountsList[accountID];
                         
-                        if (BankAccount.VerifyBalanceAmount(account, amount))
+                        if (bankAccount.VerifyBalanceAmount(account,amount))
                         {
                             account.SetAmount(account.GetAmount() - amount);
                             AccountsList[toID].SetAmount(AccountsList[toID].GetAmount() + amount);
                             DisplayMessages.TransferMessage();
-                            BankAccount.BalanceEnquiry(account);
-
+                            bankAccount.BalanceEnquiry(account);
+                            transactionServices.AddTransaction(transactionList, accountID, toID, "transfer", amount, DateTime.Now.ToString("MM/dd/yyyy h:mm tt"),bankModel.bankId);
+                            transactionServices.PrintTransactions(accountID, transactionList, AccountsList);
+                            
                         }
                         else
                         {
