@@ -1,6 +1,5 @@
 using System;
 
-
 namespace BankApplication
 {
     class DisplayMessages
@@ -28,10 +27,10 @@ namespace BankApplication
             return Console.ReadLine();
 
         }
-        public static int EnterAccountID()
+        public static string  EnterAccountID()
         {
             Console.Write("Enter Your Account ID: \n");
-            return Convert.ToInt32(Console.ReadLine());
+            return (Console.ReadLine());
         }
 
         public static double EnterAmount()
@@ -71,7 +70,9 @@ namespace BankApplication
             Console.WriteLine("Insufficient Amount\n");
         }
 
-
+        public static void transactionhis() {
+            Console.WriteLine("Transaction History\n");
+        }
         public static void DepositMessage()
         {
             Console.WriteLine("Successfully Deposited\n");
