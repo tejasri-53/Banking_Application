@@ -15,7 +15,7 @@ namespace BankApp.Service
     public class BankService
     {
 
-        public Dictionary<string, Bank> banks = new Dictionary<string, Bank>();
+       
         public Dictionary<string, float> currency = new Dictionary<string, float>();
         readonly Bank bankModel = new Bank("", 0, 5, 2, 6);
 
@@ -23,7 +23,7 @@ namespace BankApp.Service
         public bool AddBank(string name, int sameBankRTGS, int sameBankIMPS, int otherBankRTGS, int otherBankIMPS)
         {
             Bank bank = new Bank(name, sameBankRTGS, sameBankIMPS, otherBankRTGS, otherBankIMPS);
-            this.banks.Add(bank.ID, bank);
+            
             string json = JsonSerializer.Serialize(bank);
             File.AppendAllText(@"C:\Users\91990\source\repos\BankApp1\BankApp1\bank.json", json);
             return true;
@@ -41,7 +41,7 @@ namespace BankApp.Service
             Bank bank = new Bank(name);
             try
             {
-                this.banks.Add(bank.ID, bank);
+                
                 
                 string json = JsonSerializer.Serialize(bank);
                 File.AppendAllText(@"C:\Users\91990\source\repos\BankApp1\BankApp.Services\bank.json", json);
@@ -62,12 +62,10 @@ namespace BankApp.Service
             acc.AccountId = name.Substring(0, 3) + PresentDate.ToString("dd") + PresentDate.ToString("MM") + PresentDate.ToString("yyyy");
             acc.Name = name;
             acc.BankId = bankName.Substring(0, 3) + PresentDate.ToString("dd") + PresentDate.ToString("MM") + PresentDate.ToString("yyyy");
-            bankModel.customerAccounts.Add(acc.AccountId, acc);
-            Console.WriteLine($"Bank account created with:\nAccount ID: {acc.AccountId}\nPassword:{password}\n BankId:{acc.BankId}");
-            
             string json = JsonSerializer.Serialize(acc);
             File.AppendAllText(@"C:\Users\91990\source\repos\BankApp1\BankApp.Services\CustomerAccounts.json", json);
-            
+            Console.WriteLine($"Bank account created with:\nAccount ID: {acc.AccountId}\nPassword:{password}\n BankId:{acc.BankId}");
+
             return acc.AccountId;
         }
         public string CreateStaffAccount(string name, string password,string bankName)
@@ -76,57 +74,103 @@ namespace BankApp.Service
             acc.Password = password;
             acc.AccountID = name.Substring(0, 3) + PresentDate.ToString("dd") + PresentDate.ToString("MM") + PresentDate.ToString("yyyy");
             acc.Name = name;
-            acc.BankId= bankName.Substring(0, 3) + PresentDate.ToString("dd") + PresentDate.ToString("MM") + PresentDate.ToString("yyyy");
-            bankModel.staffAccounts.Add(acc.AccountID, acc);
-            Console.WriteLine($"Bank account created with:\nAccount ID: {acc.AccountID}\nPassword:{password}\n BankId:{acc.BankId}");
-            
+            acc.BankId = bankName.Substring(0, 3) + PresentDate.ToString("dd") + PresentDate.ToString("MM") + PresentDate.ToString("yyyy");
             string json = JsonSerializer.Serialize(acc);
             File.AppendAllText(@"C:\Users\91990\source\repos\BankApp1\BankApp.Services\StaffAccounts.json", json);
+            Console.WriteLine($"Bank account created with:\nAccount ID: {acc.AccountID}\nPassword:{password}\n BankId:{acc.BankId}");
             return acc.AccountID;
         }
 
         public string DepositAmount(string accountId, int amount, string bankId,string currencyName)
         {
-            Bank bank = BankService.GetBank(bankId);
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Account> accounts = JsonSerializer.Deserialize<List<Account>>(jsonstring);
+            string TID;
+            Transaction tr;
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountId == accountId)
+                    {
+                        acc.Balance += amount * (currency[currencyName]);
+                        TID = acc.BankId;
+                        tr = new Transaction(TID, accountId, amount, "Deposit", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
 
-            Account acc = bank.customerAccounts[accountId];
+                        acc.AddTransaction(tr);
+                        string json = JsonSerializer.Serialize(accounts);
+                        return acc.Name;
 
-            acc.Balance += amount * (currency[currencyName]);
-            string TID = acc.BankId;
-            Transaction tr = new Transaction(TID, accountId, amount, "Deposit", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
-
-            acc.AddTransaction(tr);
-            return acc.Name;
+                    }
+                }
+            }
+            return "";
         }
 
         public string WithdrawAmount(string accountID, int amount, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            Account acc = bank.customerAccounts[accountID];
-
-            float bal = acc.Balance;
-            if (bal < (float)amount)
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Account> accounts = JsonSerializer.Deserialize<List<Account>>(jsonstring);
+            string TID;
+            Transaction tr;
+            foreach (var acc in accounts)
             {
-                return "Failed";
-            }
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountId == accountID)
+                    {
+                        acc.Balance  -= amount;
+                        TID = acc.BankId + acc.AccountId + DateTime.Now.ToString("ddMMyyyy");
+                        tr = new Transaction(TID, accountID, amount, "Withdraw", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
+                        acc.AddTransaction(tr);
+                        string json = JsonSerializer.Serialize(accounts);
+                        return acc.Name;
 
-            acc.Balance = bal - amount;
-            string TID = acc.BankId + acc.AccountId + DateTime.Now.ToString("ddMMyyyy");
-            Transaction tr = new Transaction(TID, accountID, amount, "Withdraw", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
-            acc.AddTransaction(tr);
+                    }
+                }
+            }
             return "";
         }
 
         public string GetName(string accountID, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            return bank.customerAccounts[accountID].Name;
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<StaffAccount> accounts = JsonSerializer.Deserialize<List<StaffAccount>>(jsonstring);
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountID == accountID)
+                    {
+                        return acc.Name;
+
+                    }
+                }
+            }
+            return "";
         }
 
         public float GetBalance(string accountID, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            return bank.customerAccounts[accountID].Balance;
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Account> accounts = JsonSerializer.Deserialize<List<Account>>(jsonstring);
+
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountId == accountID)
+                    {
+                        return acc.Balance;
+
+                    }
+                }
+            }
+            return 0;
         }
 
         public bool TransferAmount(string fromId, string toId, int amount, string bankId)
@@ -159,11 +203,37 @@ namespace BankApp.Service
             acc_from.AddTransaction(tr);
             Transaction trr = new Transaction(acc_from.AccountId, acc_to.AccountId, amount, "Transfer", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
             acc_to.AddTransaction(trr);
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Account> accounts = JsonSerializer.Deserialize<List<Account>>(jsonstring);
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountId == toId)
+                    {
+                        acc.Balance += amount;
+                        acc_to.Balance -= rtgsCharges + impsCharges;
+                        string json = JsonSerializer.Serialize(accounts);
 
-            acc_from.Balance -= amount;
-            acc_to.Balance += amount;
-            acc_from.Balance -= rtgsCharges + impsCharges;
-            acc_to.Balance -= rtgsCharges + impsCharges;
+                    }
+                }
+            }
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountId == fromId)
+                    {
+                        acc.Balance -= amount;
+                        
+                        string json = JsonSerializer.Serialize(accounts);
+
+                        acc_from.Balance -= rtgsCharges + impsCharges;
+                    }
+                }
+            }
+            
 
             return true;
 
@@ -171,63 +241,164 @@ namespace BankApp.Service
         }
         public bool AuthenticateCustomer(string accountID, string password, string bankId)
         {
-            
-            Account acc = bankModel.customerAccounts[accountID];
-            if (acc.Password == password)
+
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<StaffAccount> accounts = JsonSerializer.Deserialize<List<StaffAccount>>(jsonstring);
+
+            foreach (var acc in accounts)
             {
-                return true;
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountID == accountID)
+                    {
+                        if (acc.Password == password)
+                        {
+                            string json = JsonSerializer.Serialize(acc);
+                            return true;
+                        }
+                    }
+                }
             }
             return false;
         }
 
         public bool AuthenticateStaff(string accountID, string password, string bankId)
         {
-            StaffAccount acc = bankModel.staffAccounts[accountID];
-            if (acc.Password == password)
+            
+            string filename = "StaffAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<StaffAccount> accounts = JsonSerializer.Deserialize<List<StaffAccount>>(jsonstring);
+
+            foreach (var acc in accounts)
             {
-                return true;
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountID == accountID)
+                    {
+                        if (acc.Password == password) {
+                            return true;
+                        }
+                    }
+                }
             }
             return false;
         }
 
         public string UpdateCustomerName(string accountID, string newName, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            Account acc = bankModel.customerAccounts[accountID];
-            acc.Name = newName;
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<StaffAccount> accounts = JsonSerializer.Deserialize<List<StaffAccount>>(jsonstring);
+
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountID == accountID)
+                    {
+                        acc.Name = newName;
+                        break;
+                    }
+                }
+            }
+            
             return newName;
         }
 
         public string UpdateCustomerPassword(string accountID, string newPassword, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            Account acc = bank.customerAccounts[accountID];
-            acc.Password = newPassword;
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<StaffAccount> accounts = JsonSerializer.Deserialize<List<StaffAccount>>(jsonstring);
+
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountID == accountID)
+                    {
+                        acc.Password = newPassword;
+                        break;
+                    }
+                }
+            }
+            
             return newPassword;
         }
 
         public bool DeleteCustomerAccount(string accountID, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            return bank.customerAccounts.Remove(accountID);
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Account> accounts = JsonSerializer.Deserialize<List<Account>>(jsonstring);
+
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountId == accountID)
+                    {
+                        accounts.Remove(acc);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public string GetCustomerName(string accountID, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            return bank.customerAccounts[accountID].Name;
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<StaffAccount> accounts = JsonSerializer.Deserialize<List<StaffAccount>>(jsonstring);
+             foreach (var acc in accounts)
+             {
+                 if (acc.BankId == bankId)
+                 {
+                        if (acc.AccountID == accountID)
+                        {
+                            return acc.Name;
+
+                        }
+                 }
+             }
+            return "";
         }
 
         public float GetCustomerBalance(string accountID, string bankId)
         {
-            Bank bank = BankService.GetBank(bankId);
-            return bank.customerAccounts[accountID].Balance;
+            string filename = "CustomerAccounts.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Account> accounts = JsonSerializer.Deserialize<List<Account>>(jsonstring);
+
+            foreach (var acc in accounts)
+            {
+                if (acc.BankId == bankId)
+                {
+                    if (acc.AccountId == accountID)
+                    {
+                        return acc.Balance;
+
+                    }
+                }
+            }
+            return 0;
         }
         public static Bank GetBank(string bankID)
         {
-            BankService bankservice = new BankService();
-            Bank bank = bankservice.banks[bankID];
-            return bank;
+            string filename = "bank.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Bank> banks = JsonSerializer.Deserialize<List<Bank>>(jsonstring);
+            foreach (var bank in banks)
+            {
+                if (bank.ID == bankID)
+                {
+
+                    return bank;
+                }
+            }
+            return ;
         }
 
         public bool AddCurrency(string name, float value)
@@ -240,17 +411,35 @@ namespace BankApp.Service
 
         public void UpdateSameBankCharges(string bankID, int sameRTGS, int sameIMPS)
         {
-            BankService bankService = new BankService();
-            Bank bank = bankService.banks[bankID];
-            bank.SameBankRTGSCharge = sameRTGS;
-            bank.SameBankIMPSCharge = sameIMPS;
+            
+            string filename = "bank.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Bank> banks = JsonSerializer.Deserialize<List<Bank>>(jsonstring);
+            foreach(var bank in banks) {
+                if (bank.ID == bankID) 
+                {
+                    
+                    bank.SameBankRTGSCharge = sameRTGS;
+                    bank.SameBankIMPSCharge = sameIMPS;
+                }
+            }
+
         }
         public void UpdateDifferentBankCharges(string bankID, int differentRTGS, int differentIMPS)
         {
-            BankService bankService = new BankService();
-            Bank bank = bankService.banks[bankID];
-            bank.DifferentBankRTGSCharge = differentRTGS;
-            bank.DifferentBankIMPSCharge = differentIMPS;
+            
+            string filename = "bank.json";
+            string jsonstring = File.ReadAllText(filename);
+            List<Bank> banks = JsonSerializer.Deserialize<List<Bank>>(jsonstring);
+            foreach (var bank in banks)
+            {
+                if (bank.ID == bankID)
+                {
+                    bank.DifferentBankRTGSCharge = differentRTGS;
+                    bank.DifferentBankIMPSCharge = differentIMPS;
+
+                }
+            }
         }
 
 
