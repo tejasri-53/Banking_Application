@@ -3,399 +3,244 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MySql.Data;
-using MySql.Data.MySqlClient;
-using System.Globalization;
+using BankApp.Model;
 using ConsoleTables;
-using  BankApp.Models;
 
-using BankApp.Services;
-
-namespace BankApp.Services
+namespace BankApp.Service
 {
     public class BankService
     {
-        public static string connStr;
 
-        public static string GetDateTimeNow(bool forId)
+        private MyDbContext dbContext;
+
+        public BankService()
+        {
+            dbContext = new MyDbContext();
+        }
+
+        private string GetDateTimeNow(bool forId)
         {
             return forId ? DateTime.Now.ToString("ddMMyyyyHHmmss") : DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
         }
 
-        public string init()
+
+        public string AddBank(string name, float sRTGS, float sIMPS, float oRTGS, float oIMPS)
         {
-            connStr = "server=localhost;user=root;database=bankapp;port=3306;password=Tejasri53!";
-            
-            try
+            var bank = new Bank
             {
-
-
-
-
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(SqlQueries.CheckTabelsExist, conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                        string temp = "";
-                        while (reader.Read())
-                        {
-                            temp += reader.GetString(0);
-                        }
-                        if (temp != "1" || temp == null)
-                        {
-                            string x=CreateTables();
-                            string bankId=AddBank("AndhraBank", 0, 5, 2, 6);
-                            AccountService.CreateStaffAccount("admin", "admin", "admin", bankId);
-                            return x;
-                        }
-                        return "Tables already exist !!";
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                return $"SQL ERROR WHILE INITILIZING DB \n{e}";
-            }
+                BankId = $"{name.Substring(0, 3)}{DateTime.Now.ToString("ddMMyyyy")}",
+                BankName = name,
+                sRTGSCharge = sRTGS,
+                sIMPSCharge = sIMPS,
+                oRTGSCharge = oRTGS,
+                oIMPSCharge = oIMPS
+            };
+            dbContext.Add(bank);
+            dbContext.SaveChanges();
+            return bank.BankId;
         }
-
-        public string CreateTables()
-        {
-            try
-            {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(SqlQueries.CreateBanksTable, conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                    }
-                }
-
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(SqlQueries.CreateCustomerAccountsTable, conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                    }
-
-                }
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(SqlQueries.CreateStaffAccountsTable, conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                    }
-
-                }
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(SqlQueries.CreateTransactionsTable, conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                    }
-
-                }
-
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(SqlQueries.CreateCurrencyTable, conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                    }
-
-                }
-
-                return "Succesfully created all tables !!";
-            }
-            catch (Exception e)
-            {
-                return "SQL ERROR: " + e.ToString();
-            }
-        }
-
-
-
-
-
-
 
         public string AddBank(string name)
         {
-            string bankId = $"{name.Substring(0, 3)}{GetDateTimeNow(true)}";
-            try
+            var bank = new Bank
             {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.InsertIntoBanksTable, bankId, name, 0, 5, 2, 6), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                return e.ToString();
-            }
-            return bankId;
+                BankId = $"{name.Substring(0, 3)}{DateTime.Now.ToString("ddMMyyyy")}",
+                BankName = name,
+                sRTGSCharge = 0,
+                sIMPSCharge = 5,
+                oRTGSCharge = 2,
+                oIMPSCharge = 6
+            };
+            dbContext.Add(bank);
+            dbContext.SaveChanges();
+            return bank.BankId;
         }
 
-        public static string AddBank(string name, float sRTGS, float sIMPS, float oRTGS, float oIMPS)
+        public string CreateCustomerAccount(string name, string pass, string bankId)
         {
-            string bankId = $"{name.Substring(0, 3)}{GetDateTimeNow(true)}";
-            try
+            var customer = new CustomerAccount
             {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.InsertIntoBanksTable, bankId, name, sRTGS, sIMPS, oRTGS, oIMPS), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                return e.ToString();
-            }
-            return bankId;
+                AccountId = $"{name.Substring(0, 3)}{GetDateTimeNow(true)}",
+                Name = name,
+                Password = pass,
+                BankId = bankId,
+                Balance = 0,
+                IsActive=1
+            };
+            dbContext.Add(customer);
+            dbContext.SaveChanges();
+            return customer.AccountId;
         }
 
-        public static string GetName(string accountId)
+        public string CreateStaffAccount(string name, string pass, string bankId)
         {
-            try
+            var staffAccounts = new StaffAccounts
             {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.GetName, accountId), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                        string temp = "";
-                        while (reader.Read())
-                        {
-                            temp += reader.GetString(0);
-                        }
+                AccountId = $"{name.Substring(0, 3)}{GetDateTimeNow(true)}",
+                Name = name,
+                Password = pass,
+                BankId = bankId
+            };
+            dbContext.Add(staffAccounts);
+            dbContext.SaveChanges();
+            return staffAccounts.AccountId;
+        }
 
-                        return temp;
-                    }
-                }
-            }
-            catch (Exception e)
+        public string DepositAmount(string accountId, float amount)
+        {
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            float currentBalance = customer.Balance;
+            customer.Balance = currentBalance + amount;
+            dbContext.SaveChanges();
+           
+            return customer.Name;
+        }
+
+        public bool WithdrawAmount(string accountId, float amount)
+        {
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            float currentBalance = customer.Balance;
+            if (currentBalance - amount >= 0)
             {
-                return e.ToString();
+                customer.Balance = currentBalance - amount;
+                dbContext.SaveChanges();
+                
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
-
-
-
-        public static float UpdatesRTGS(float val, string bankId)
+        public bool AuthenticateCustomer(string accountId, string pass)
         {
-            try
-            {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.UpdatesRTGS, val, bankId), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            return customer.Password == pass;
+        }
 
-                        return val;
+        public bool AuthenticateStaff(string accountId, string pass)
+        {
+           
+                var staff = dbContext.StaffAccounts.Find(accountId);
+                return staff.Password == pass;
+            
+        }
 
+        public string UpdateCustomerName(string accountId, string newName)
+        {
 
-                    }
-                }
-            }
-            catch
-            {
-                return -1;
-            }
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            customer.Name = newName;
+            dbContext.SaveChanges();
+            return newName;
+        }
+
+        public string UpdateCustomerPassword(string accountId, string newPassword)
+        {
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            customer.Password = newPassword;
+            dbContext.SaveChanges();
+            return newPassword;
+        }
+
+        public bool DeleteCustomerAccount(string accountId)
+        {
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            dbContext.Remove(customer);
+            dbContext.SaveChanges();
+            return true;
+        }
+
+        public string GetName(string accountId)
+        {
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            return customer.Name;
+        }
+
+        public float GetBalance(string accountId)
+        {
+            var customer = dbContext.CustomerAccounts.Find(accountId);
+            return customer.Balance;
         }
 
         
-        public static float UpdatesIMPS(float val, string bankId)
-        {
-            try
-            {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.UpdatesIMPS, val, bankId), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                        return val;
 
-                    }
-                }
-            }
-            catch
+
+        public bool TransferAmountRTGS(string fromId, string toId, float amount)
+        {
+            var fromCustomer = dbContext.CustomerAccounts.Find(fromId);
+            var toCustomer = dbContext.CustomerAccounts.Find(toId);
+
+            if (fromCustomer.Balance - amount >= 0)
             {
-                return -1;
+                float fromBalance = fromCustomer.Balance;
+                fromCustomer.Balance = fromBalance - amount;
+                float toBalance = toCustomer.Balance;
+                _ = toCustomer.BankId == fromCustomer.BankId ? toCustomer.Balance = toBalance + amount - (amount * dbContext.Banks.Find(toCustomer.BankId).sRTGSCharge) : toCustomer.Balance = toBalance + amount - (amount * dbContext.Banks.Find(fromCustomer.BankId).oRTGSCharge);
+                
+                dbContext.SaveChanges();
+                return true;
             }
+            return false;
         }
 
-        public static float UpdateoRTGS(float val, string bankId)
+        public bool TransferAmountIMPS(string fromId, string toId, float amount)
         {
-            try
-            {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.UpdateoRTGS, val, bankId), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                        return val;
+            var fromCustomer = dbContext.CustomerAccounts.Find(fromId);
+            var toCustomer = dbContext.CustomerAccounts.Find(toId);
 
-                    }
-                }
-            }
-            catch
+            if (fromCustomer.Balance - amount >= 0)
             {
-                return -1;
+                float fromBalance = fromCustomer.Balance;
+                fromCustomer.Balance = fromBalance - amount;
+                float toBalance = toCustomer.Balance;
+                _ = toCustomer.BankId == fromCustomer.BankId ? toCustomer.Balance = toBalance + amount - (amount * dbContext.Banks.Find(toCustomer.BankId).sIMPSCharge) : toCustomer.Balance = toBalance + amount - (amount * dbContext.Banks.Find(fromCustomer.BankId).oIMPSCharge);
+                
+                dbContext.SaveChanges();
+                return true;
             }
+            return false;
         }
 
-        public static float UpdateoIMPS(float val, string bankId)
-        {
-            try
-            {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.UpdateoIMPS, val, bankId), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                        return val;
+     
 
-                    }
-                }
-            }
-            catch
-            {
-                return -1;
-            }
+        public bool UpdatesRTGS(float sRTGSCharge, string bankId)
+        {
+            var bank = dbContext.Banks.Find(bankId);
+            bank.sRTGSCharge = sRTGSCharge;
+            dbContext.SaveChanges();
+            return true;
         }
 
-        public static float GetBanksRTGSCharges(string bankId)
+        public bool UpdatesIMPS(float sIMPSCharge, string bankId)
         {
-
-            using (MySqlConnection conn = new MySqlConnection(connStr))
-            {
-                using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.GetBanksRTGSCharges, bankId), conn))
-                {
-                    cmd.Connection.Open();
-                    MySqlDataReader reader = cmd.ExecuteReader();
-                    string temp = "";
-                    while (reader.Read())
-                    {
-                        temp += reader.GetString(0);
-                    }
-
-                    return float.Parse(temp);
-                }
-            }
+            var bank = dbContext.Banks.Find(bankId);
+            bank.sIMPSCharge = sIMPSCharge;
+            dbContext.SaveChanges();
+            return true;
         }
 
-        public static float GetBanksIMPSCharges(string bankId)
+        public bool UpdateoRTGS(float oRTGSCharge, string bankId)
         {
-
-            using (MySqlConnection conn = new MySqlConnection(connStr))
-            {
-                using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.GetBanksIMPSCharges, bankId), conn))
-                {
-                    cmd.Connection.Open();
-                    MySqlDataReader reader = cmd.ExecuteReader();
-                    string temp = "";
-                    while (reader.Read())
-                    {
-                        temp += reader.GetString(0);
-                    }
-
-                    return float.Parse(temp);
-                }
-            }
+            var bank = dbContext.Banks.Find(bankId);
+            bank.oRTGSCharge = oRTGSCharge;
+            dbContext.SaveChanges();
+            return true;
         }
 
-        public static float GetBankoRTGSCharges(string bankId)
+        public bool UpdateoIMPS(float oIMPSCharge, string bankId)
         {
-
-            using (MySqlConnection conn = new MySqlConnection(connStr))
-            {
-                using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.GetBankoRTGSCharges, bankId), conn))
-                {
-                    cmd.Connection.Open();
-                    MySqlDataReader reader = cmd.ExecuteReader();
-                    string temp = "";
-                    while (reader.Read())
-                    {
-                        temp += reader.GetString(0);
-                    }
-
-                    return float.Parse(temp);
-                }
-            }
-        }
-
-        public static float GetBankoIMPSCharges(string bankId)
-        {
-
-            using (MySqlConnection conn = new MySqlConnection(connStr))
-            {
-                using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.GetBankoIMPSCharges, bankId), conn))
-                {
-                    cmd.Connection.Open();
-                    MySqlDataReader reader = cmd.ExecuteReader();
-                    string temp = "";
-                    while (reader.Read())
-                    {
-                        temp += reader.GetString(0);
-                    }
-
-                    return float.Parse(temp);
-                }
-            }
-        }
-
-
-
-        public static string GetBankId(string accountId)
-        {
-            try
-            {
-                using (MySqlConnection conn = new MySqlConnection(connStr))
-                {
-                    using (MySqlCommand cmd = new MySqlCommand(String.Format(SqlQueries.GetBankId, accountId), conn))
-                    {
-                        cmd.Connection.Open();
-                        MySqlDataReader reader = cmd.ExecuteReader();
-                        string temp = "";
-                        while (reader.Read())
-                        {
-                            temp += reader.GetString(0);
-                        }
-
-                        return temp;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                return e.ToString();
-            }
+            var bank = dbContext.Banks.Find(bankId);
+            bank.oIMPSCharge = oIMPSCharge;
+            dbContext.SaveChanges();
+            return true;
         }
 
         
-        
 
         
-
 
     }
+
 }
