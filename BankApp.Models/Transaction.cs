@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,28 +9,47 @@ namespace BankApp.Model
 {
     public class Transaction
     {
-        public string transactionID;
-        public string sID, rID;
-        public double amount;
-        public string description;
-        public string  time;
-        public Transaction(string tID, string sID, string rID, string description,double amount,  string time)
+        public static int Total { get; set; }
+
+        public string TransactionId { get; set; }
+
+        public string SenderId { get; set; }
+
+        public string ReceiverId { get; set; }
+
+        public float Amount { get; set; }
+
+        public int Type { get; set; }
+
+        public string Time { get; set; }
+
+
+        /*
+        public Transaction(string TransactionId,string senderId, string receiverId, float amount, int type, string time)
         {
-            this.transactionID = tID;
-            this.sID = sID;
-            this.rID = rID;
-            this.description = description;
-            this.amount = amount;
-            this.time = time;
+            this.TransactionId = TransactionId;
+            this.SenderId = senderId;
+            this.ReceiverId = receiverId;
+            this.Amount = amount;
+            this.Type = type;
+            this.Time = time;
+            Total += 1;
         }
-        public Transaction(string tID, string rID, double amount, string description, string time)
+        public Transaction(string TransactionId, string rId, float amount, int type, string time)
         {
-            this.transactionID = tID;
-            this.rID = rID;
-            this.amount = amount;
-            this.description= description;
-            this.time = time;
+            this.TransactionId = TransactionId;
+            this.ReceiverId = rId;
+            this.Amount = amount;
+            this.Type = type;
+            this.Time = time;
+            Total += 1;
+        }*/
+        public enum TransactionType
+        {
+            Withdraw = 1,
+            Deposit,
+            Transfer,
         }
-        
+
     }
 }
