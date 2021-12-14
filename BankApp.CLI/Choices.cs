@@ -1,25 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BankApp.CLI // add enum for type of transaction
+namespace BankApp.CLI
 {
 
     public enum MainMenu
     {
-        CreateBank=1,
-        CreateStaffAccount,
+        createBank=1,
         Login,
         EXIT,
     }
 
     public enum CustomerLoginMenu
     {
-        Deposit = 1,
-        TransferMoney ,
+        
+        TransferMoney =1,
         Withdraw,
+        Deposit ,
         Logout,
     }
     public enum StaffLoginMenu
