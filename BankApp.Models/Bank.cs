@@ -1,53 +1,45 @@
-﻿using BankApp.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static BankApp.Model.Account;
 
 namespace BankApp.Model
 {
     public class Bank
     {
-        public string ID { get; set; }
-        public string Name { get; set; }
+        
+        
+        public string BankId { get; set; }
+        public string BankName { get; set; }
 
-        public int SameBankRTGSCharge { get; set; }
+        public float sRTGSCharge { get; set; }
 
-        public int SameBankIMPSCharge { get; set; }
+        public float sIMPSCharge { get; set; }
 
-        public int DifferentBankRTGSCharge { get; set; }
+        public float oRTGSCharge { get; set; }
 
-        public int DifferentBankIMPSCharge { get; set; }
+        public float oIMPSCharge { get; set; }
 
-        public Dictionary<string, Account> customerAccounts = new Dictionary<string, Account>();
-
-        public Dictionary<string, StaffAccount> staffAccounts = new Dictionary<string, StaffAccount>();
-
-
-        public Bank(string bankName, int sameBankRTGS, int sameBankIMPS, int otherBankRTGS, int otherBankIMPS)
+       /* 
+        public Bank(string bankName,float sRTGS, float sIMPS, float oRTGS, float oIMPS)
         {
-            this.Name = bankName;
-            DateTime PresentDate = DateTime.Today;
-            this.ID = PresentDate.ToString("dd") + PresentDate.ToString("MM") + PresentDate.ToString("yyyy");
-            this.SameBankRTGSCharge= sameBankRTGS;
-            this.SameBankIMPSCharge = sameBankIMPS;
-            this.DifferentBankRTGSCharge= otherBankRTGS;
-            this.DifferentBankIMPSCharge= otherBankIMPS;
-
+            this.BankName = bankName;
+            this.BankId = $"{bankName.Substring(0, 3)}{DateTime.Now.ToString("ddMMyyyy")}";
+            this.sRTGSCharge = sRTGS;
+            this.sIMPSCharge = sIMPS;
+            this.oRTGSCharge = oRTGS;
+            this.oIMPSCharge = oIMPS;
         }
-
         public Bank(string bankName)
         {
-            this.Name = bankName;
-            DateTime PresentDate = DateTime.Today;
-            this.ID=Name.Substring(0, 3) + PresentDate.ToString("dd") + PresentDate.ToString("MM") + PresentDate.ToString("yyyy");
-            this.SameBankRTGSCharge= 0;
-            this.SameBankIMPSCharge = 5;
-            this.DifferentBankRTGSCharge = 2;
-            this.DifferentBankIMPSCharge= 6;
-
-        }
+            this.BankName = bankName;
+            this.BankId = $"{bankName.Substring(0, 3)}{DateTime.Now.ToString("ddMMyyyy")}";
+            this.sRTGSCharge = 0;
+            this.sIMPSCharge = 5;
+            this.oRTGSCharge = 2;
+            this.oIMPSCharge = 6;
+        }*/
     }
 }
